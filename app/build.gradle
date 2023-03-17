@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.ktxdevelopment.websocket'
-    compileSdk 33
+    compileSdk 31
 
     defaultConfig {
         applicationId "com.ktxdevelopment.websocket"
         minSdk 21
-        targetSdk 32
+        targetSdk 31
         versionCode 1
         versionName "1.0"
 
@@ -37,12 +37,18 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.core:core-ktx:1.8.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0-beta01'
+
+    // web socket
     implementation ('io.socket:socket.io-client:2.1.0') {
         exclude group: 'org.json', module: 'json'
     }
+
+    // Serialization
+    implementation 'com.google.code.gson:gson:2.10.1'
+
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
     implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
