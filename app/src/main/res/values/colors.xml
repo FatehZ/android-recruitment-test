@@ -2,4 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="cv_stroke_color">#00f</color>
+    <color name="red_arrow">#f00</color>
+    <color name="green_arrow">#0f0</color>
+    <color name="blue">#00f</color>
+    <color name="teal">#666</color>
 </resources>

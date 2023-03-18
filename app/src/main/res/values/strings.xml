@@ -43,4 +43,7 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+    <string name="connection_established">Connection Established</string>
+    <string name="disconnected_cached_data">Disconnected (Cached Data)</string>
+    <string name="value">Value</string>
 </resources>
