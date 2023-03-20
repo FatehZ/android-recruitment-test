@@ -4,15 +4,17 @@ import android.util.Log
 import com.google.gson.Gson
 import com.ktxdevelopment.websocket.model.remote.ResponseModel
 import com.ktxdevelopment.websocket.util.Constants
-import com.ktxdevelopment.websocket.util.update
 import io.socket.client.IO
 import io.socket.client.Socket
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.net.URI
+import javax.inject.Singleton
 
-
+@Singleton
 class WebSocketService {
+
+    private val TAG: String = "LTS_TAG"
 
     private val socket: Socket
 
@@ -20,66 +22,67 @@ class WebSocketService {
     val socketState = _socketState.asStateFlow()
 
     init {
-        val uri: URI = URI.create("https://q.investaz.az")
+
+        val uri: URI = URI.create("https://q.investaz.az:3000/")
         val options = IO.Options.builder()
-            .setPath("/live")
+            .setPath("/connect")
             .build()
+
         socket = IO.socket(uri, options)
 
-        collectSocketConnected()
-        collectSocketDisconnected()
+        observeSocketConnection()
         //
-        collectConnectionError()
-        collectSocketError()
+        observeConnectionError()
         //
-        collectSocketData()
+        observeSocketData()
+
     }
 
-    private fun collectSocketConnected() {
+    private fun observeSocketConnection() {
         socket.on(Constants.Socket.CONNECT) {
             Log.i(TAG, "SOCKET CONNECTED")
-            _socketState.update { it.copy(connected = true) }
-        }
-    }
-
-    val TAG  = "LTS_TAG"
-
-    private fun collectSocketDisconnected() {
-        socket.on(Constants.Socket.DISCONNECT) {
+            _socketState.value = _socketState.value.copy(connected = true)
+        }.on(Constants.Socket.DISCONNECT) {
             Log.i(TAG, "SOCKET DICCONNECTED")
-            _socketState.update { it.copy(connected = false) }
+            _socketState.value = _socketState.value.copy(connected = false)
         }
     }
 
-    private fun collectConnectionError() {
+
+    private fun observeConnectionError() {
         socket.on(Constants.Socket.CONNECT_ERROR) { data ->
             if (data != null && data.isNotEmpty()) {
                 val error = data[0]
-                if (error!= null && error is Throwable) _socketState.value = _socketState.value.copy(error = error)
+                if (error != null && error is Throwable) {
+                    Log.i(TAG, "collectConnectionError: ${data[0]}")
+                    _socketState.value = _socketState.value.copy(error = error)
+                }
             }
-        }
-    }
-
-    private fun collectSocketError() {
-        socket.on(Constants.Socket.ERROR) { data ->
+        }.on(Constants.Socket.ERROR) { data ->
             if (data != null && data.isNotEmpty()) {
+                Log.i(TAG, "collectConnectionError: ${data[0]}")
                 val error = data[0]
-                if (error!= null && error is Throwable) _socketState.update { it.copy(error = error) }
+                if (error != null && error is Throwable) _socketState.value =
+                    _socketState.value.copy(error = error)
             }
         }
     }
 
-    private fun collectSocketData() {
+    private fun observeSocketData() {
         socket.on(Constants.Socket.MESSAGE) { data ->
             if (data.isNotEmpty()) {
                 val jsonString: String = data[0].toString()
                 val result = Gson().fromJson(jsonString, ResponseModel::class.java)
-                _socketState.update { it.copy(data = result) }
+                _socketState.value = _socketState.value.copy(data = result)
             }
         }
-
     }
-        fun connect() { socket.connect() }
 
-        fun disconnect() { socket.disconnect() }
+    fun connect() {
+        socket.connect()
+    }
+
+    fun disconnect() {
+        socket.disconnect()
+    }
 }

@@ -16,6 +16,7 @@ import com.ktxdevelopment.websocket.model.connection.UIState
 import com.ktxdevelopment.websocket.mvvm.ConnectionViewModel
 import com.ktxdevelopment.websocket.ui.rv.InvestAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import io.socket.client.IO
 
 @AndroidEntryPoint
 class FragmentMain : Fragment() {

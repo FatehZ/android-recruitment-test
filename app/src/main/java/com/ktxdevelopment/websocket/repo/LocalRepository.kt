@@ -14,22 +14,12 @@ import javax.inject.Inject
 @Suppress("UNCHECKED_CAST")
 class LocalRepository @Inject constructor(private var dao: InvestDao, private var mapper: InvestMapper, private var socketService: WebSocketService) {
 
-    private var data = arrayListOf(
-    InvestEntity("up", "ad", "ad", "ad", "ad", "ad", 12, "dwdw"),
-    InvestEntity("ad", "ad", "ad", "ad", "ad", "ad", 12, "dwdw"),
-    InvestEntity("ad", "ad", "ad", "ad", "ad", "ad", 12, "dwdw")
-    )
-
     suspend fun insertInvest(invest: InvestItem) = dao.insertInvest(mapper.mapToEntity(invest))
 
     suspend fun insertAllInvests(invests: List<InvestItem>) =
         dao.insertAllInvests(mapper.mapToEntity(invests))
 
     suspend fun saveInvests(invests: List<InvestItem>) = dao.refreshAll(mapper.mapToEntity(invests))
-
-//    fun getAllInvests(): Flow<List<InvestItem>> {
-//        return mapper.mapList(flowOf(data), InvestEntity::asDto) as Flow<List<InvestItem>>
-//    }
 
     fun getAllInvests(): Flow<List<InvestItem>> {
         return mapper.mapList(dao.getAllInvests(), InvestEntity::asDto) as Flow<List<InvestItem>>
