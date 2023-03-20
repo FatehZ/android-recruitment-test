@@ -24,9 +24,9 @@ class WebSocketService {
     init {
 
         val uri: URI = URI.create("https://q.investaz.az:3000/")
-        val options = IO.Options.builder()
-            .setPath("/connect")
-            .build()
+        val options = IO.Options()
+        options.transports = arrayOf("websocket")
+        options.path = ("/socket.io")
 
         socket = IO.socket(uri, options)
 
@@ -40,7 +40,8 @@ class WebSocketService {
 
     private fun observeSocketConnection() {
         socket.on(Constants.Socket.CONNECT) {
-            Log.i(TAG, "SOCKET CONNECTED")
+            Log.i("LT_TAG", "observeSocketConnection: ${it}")
+            Log.i("LT_TAG", "observeSocketConnection: ${it.size}")
             _socketState.value = _socketState.value.copy(connected = true)
         }.on(Constants.Socket.DISCONNECT) {
             Log.i(TAG, "SOCKET DICCONNECTED")
@@ -83,6 +84,6 @@ class WebSocketService {
     }
 
     fun disconnect() {
-        socket.disconnect()
+//        socket.disconnect()
     }
 }
