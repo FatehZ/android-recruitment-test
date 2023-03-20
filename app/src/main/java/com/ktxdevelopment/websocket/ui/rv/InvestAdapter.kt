@@ -1,41 +1,51 @@
 package com.ktxdevelopment.websocket.ui.rv
 
-import android.graphics.drawable.Drawable
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.ktxdevelopment.websocket.R
 import com.ktxdevelopment.websocket.databinding.ItemInvestListBinding
 import com.ktxdevelopment.websocket.model.remote.InvestItem
+import com.ktxdevelopment.websocket.util.Constants
 
-class InvestAdapter(private val onInvestClickListener: OnInvestClickListener) : ListAdapter<InvestItem, InvestAdapter.InvestViewHolder>(Diff) {
+class InvestAdapter : RecyclerView.Adapter<InvestAdapter.InvestViewHolder>() {
 
-    class InvestViewHolder(binding: ItemInvestListBinding) : ViewHolder(binding.root)
+    private val currentList: ArrayList<InvestItem> = arrayListOf()
 
-    object Diff : DiffUtil.ItemCallback<InvestItem>() {
-        override fun areItemsTheSame(oldItem: InvestItem, newItem: InvestItem): Boolean {
-            return newItem.company == oldItem.company
-        }
-        override fun areContentsTheSame(old: InvestItem, new: InvestItem): Boolean{
-            return (new.date == old.date && new.val1 == old.val1 && new.val2 == old.val2 && new.val3 == old.val3 && new.val4 == old.val4)
-        }
-    }
-
-
-
-
-    interface OnInvestClickListener {
-        fun onInvestClick(item: InvestItem)
-    }
+    class InvestViewHolder(val binding: ItemInvestListBinding) : ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): InvestViewHolder {
         return InvestViewHolder(ItemInvestListBinding.inflate(LayoutInflater.from(parent.context), parent, false))
     }
 
     override fun onBindViewHolder(holder: InvestViewHolder, position: Int) {
+        val current = currentList[position]
+        holder.binding.tvCompany.text = current.company
+        holder.binding.tvRank.text = current.rank.toString()
 
+        if (current.trend.lowercase() == Constants.Trend.UP) holder.binding.ivArrow.setImageResource(R.drawable.arrow_up)
+        else holder.binding.ivArrow.setImageResource(R.drawable.arrow_down)
+
+        holder.binding.tvVal1.text = current.val1
+        holder.binding.tvVal2.text = current.val2
+        holder.binding.tvVal3.text = current.val3
+        holder.binding.tvVal4.text = current.val4
+    }
+
+    override fun getItemCount() = currentList.size
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun submitList(list: List<InvestItem>) {
+        currentList.clear()
+        currentList.addAll(list)
+        notifyDataSetChanged()
+
+        val diffResult = DiffUtil.calculateDiff(InvestDiffUtilCallback(currentList, list))
+        currentList.clear()
+        currentList.addAll(list)
+        diffResult.dispatchUpdatesTo(this)
     }
 }

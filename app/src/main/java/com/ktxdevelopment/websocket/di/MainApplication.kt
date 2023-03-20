@@ -1,4 +1,4 @@
-package com.ktxdevelopment.websocket.ui.main
+package com.ktxdevelopment.websocket.di
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
