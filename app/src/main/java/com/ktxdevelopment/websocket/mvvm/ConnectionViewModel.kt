@@ -34,16 +34,16 @@ class ConnectionViewModel @Inject constructor(
     val uiState: MutableLiveData<UIState> by lazy { MutableLiveData(UIState()) }
     private val networkObserver: NetworkObserver by lazy { NetworkManager(application.applicationContext) }
 
+    private val localData : ArrayList<InvestItem> by lazy { arrayListOf() }
 
     fun launchObservers() {
         viewModelScope.launch(Dispatchers.IO) {
             launch {
-
                 // Observing internet connection
                 networkObserver.observe().collectLatest {
                     when(it) {
-                        NetworkObserver.Status.Unavailable -> { disconnect(); uiState.postValue(uiState.value!!.copy(state = OFFLINE)) }
-                        NetworkObserver.Status.Lost -> { disconnect(); uiState.postValue(uiState.value!!.copy(state = OFFLINE)) }
+                        NetworkObserver.Status.Unavailable -> { disconnect(); uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL, data = localData, state = OFFLINE)) }
+                        NetworkObserver.Status.Lost -> { disconnect(); uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL, data = localData, state = OFFLINE)) }
                         else -> Unit
                     }
                 }
@@ -52,9 +52,17 @@ class ConnectionViewModel @Inject constructor(
             // Observing Socket connection
             launch {
                 connectionObserver.invoke().collectLatest {
-                    if (it.error != null) uiState.postValue(uiState.value!!.copy(state = OFFLINE))
-                    else if (!it.connected) uiState.postValue(uiState.value!!.copy(state = OFFLINE))
-                    else uiState.postValue(uiState.value!!.copy(state = ONLINE))
+                    if (it.error != null) uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL, data = localData, state = OFFLINE))
+                    else if (!it.connected) uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL, data = localData, state = OFFLINE))
+                }
+            }
+
+            loadOnlineData()
+
+            launch(Dispatchers.IO) {
+                localDataObserver.invoke().collectLatest {
+                    localData.clear()
+                    localData.addAll(it)
                 }
             }
         }
@@ -74,30 +82,18 @@ class ConnectionViewModel @Inject constructor(
         disconnect.invoke()
     }
 
-    fun loadOnlineData() {
+    private fun loadOnlineData() {
         viewModelScope.launch(Dispatchers.IO) {
             dataObserver.invoke().collectLatest {
                 if (it.isEmpty()) {
                     Log.i(TAG, "Load Online --- OFFLINE")
-                    if (uiState.value!!.state != ONLINE) uiState.postValue(uiState.value!!.copy(state = ONLINE))
-                    uiState.postValue(uiState.value!!.copy(state = ONLINE))
+                    if (uiState.value!!.dataType != DataState.LOCAL) uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL ,data = localData, state = OFFLINE))
                 }
                 else {
                     Log.i(TAG, "Load Online --- ONLINE")
-                    uiState.postValue(uiState.value!!.copy(data = it, dataType = DataState.ONLINE))
-                    if (uiState.value!!.state != ONLINE) uiState.postValue(uiState.value!!.copy(state = ONLINE))
+                    uiState.postValue(uiState.value!!.copy(state = ONLINE, data = it, dataType = DataState.ONLINE))
                     saveDataToLocalDB(it)
                 }
-            }
-        }
-    }
-
-    fun loadLocalData() {
-        viewModelScope.launch(Dispatchers.IO) {
-            localDataObserver.invoke().collectLatest {
-                Log.i(TAG, "Load Local")
-                uiState.postValue(uiState.value!!.copy(data = it, dataType = DataState.LOCAL))
-                if (uiState.value!!.state != OFFLINE) uiState.postValue(uiState.value!!.copy(state = OFFLINE))
             }
         }
     }

@@ -2,6 +2,8 @@ package com.ktxdevelopment.websocket.ui.rv
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
+import android.view.View
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +20,7 @@ class InvestAdapter : RecyclerView.Adapter<InvestAdapter.InvestViewHolder>() {
     class InvestViewHolder(val binding: ItemInvestListBinding) : ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): InvestViewHolder {
+
         return InvestViewHolder(ItemInvestListBinding.inflate(LayoutInflater.from(parent.context), parent, false))
     }
 

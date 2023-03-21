@@ -9,6 +9,7 @@ import io.socket.client.Socket
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.net.URI
+
 import javax.inject.Singleton
 
 @Singleton
@@ -40,11 +41,8 @@ class WebSocketService {
 
     private fun observeSocketConnection() {
         socket.on(Constants.Socket.CONNECT) {
-            Log.i("LT_TAG", "observeSocketConnection: ${it}")
-            Log.i("LT_TAG", "observeSocketConnection: ${it.size}")
             _socketState.value = _socketState.value.copy(connected = true)
         }.on(Constants.Socket.DISCONNECT) {
-            Log.i(TAG, "SOCKET DICCONNECTED")
             _socketState.value = _socketState.value.copy(connected = false)
         }
     }
@@ -84,6 +82,6 @@ class WebSocketService {
     }
 
     fun disconnect() {
-//        socket.disconnect()
+        socket.disconnect()
     }
 }

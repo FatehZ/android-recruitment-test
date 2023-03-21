@@ -53,15 +53,16 @@ class FragmentMain : Fragment() {
 
     val TAG = "LTS_TAG"
 
+
     private fun initConnections() {
         viewModel.launchObservers()
         viewModel.uiState.observe(viewLifecycleOwner) {
             Log.i(TAG, "initConnections: ${it.state}")
             investAdapter.submitList(it.data)
             when (it.state) {
-                UIConnectionState.ONLINE -> { enableUI(it); if (it.dataType != DataState.ONLINE) viewModel.loadOnlineData()  }
+                UIConnectionState.ONLINE -> { enableUI(it)  }
                 UIConnectionState.CONNECTING -> { disableUI() }
-                UIConnectionState.OFFLINE -> { enableUI(it); if (it.dataType != DataState.LOCAL) viewModel.loadLocalData()  }
+                UIConnectionState.OFFLINE -> { enableUI(it) }
                 UIConnectionState.DISCONNECTING -> { disableUI() }
             }
         }
