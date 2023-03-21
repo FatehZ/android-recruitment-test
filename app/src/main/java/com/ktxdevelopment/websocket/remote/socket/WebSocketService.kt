@@ -24,10 +24,10 @@ class WebSocketService {
 
     init {
 
-        val uri: URI = URI.create("https://q.investaz.az:3000/")
+        val uri: URI = URI.create("https://q.investaz.az/")
         val options = IO.Options()
         options.transports = arrayOf("websocket")
-        options.path = ("/socket.io")
+        options.path = ("/live")
 
         socket = IO.socket(uri, options)
 
