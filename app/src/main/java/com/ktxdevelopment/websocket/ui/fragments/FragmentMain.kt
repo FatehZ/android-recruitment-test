@@ -17,7 +17,9 @@ import com.ktxdevelopment.websocket.mvvm.ConnectionViewModel
 import com.ktxdevelopment.websocket.ui.rv.InvestAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import io.socket.client.IO
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class FragmentMain : Fragment() {
 

@@ -72,7 +72,7 @@ class WebSocketService {
             if (data.isNotEmpty()) {
                 val jsonString: String = data[0].toString()
                 val result = Gson().fromJson(jsonString, ResponseModel::class.java)
-                _socketState.value = _socketState.value.copy(data = result)
+                _socketState.value = _socketState.value.copy(error = null, data = result)
             }
         }
     }

@@ -1,13 +1,15 @@
 package com.ktxdevelopment.websocket.mvvm
 
 import android.app.Application
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import androidx.core.os.postDelayed
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.ktxdevelopment.websocket.flow.local.ObserveLocalDataUsecase
 import com.ktxdevelopment.websocket.flow.socket.*
-import com.ktxdevelopment.websocket.model.connection.DataState
 import com.ktxdevelopment.websocket.model.connection.UIConnectionState.*
 import com.ktxdevelopment.websocket.model.connection.UIState
 import com.ktxdevelopment.websocket.model.remote.InvestItem
@@ -15,11 +17,13 @@ import com.ktxdevelopment.websocket.remote.net.NetworkManager
 import com.ktxdevelopment.websocket.remote.net.NetworkObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
+@ExperimentalCoroutinesApi
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
     private var connectionObserver: ObserveConnectionUsecase,
@@ -34,36 +38,41 @@ class ConnectionViewModel @Inject constructor(
     val uiState: MutableLiveData<UIState> by lazy { MutableLiveData(UIState()) }
     private val networkObserver: NetworkObserver by lazy { NetworkManager(application.applicationContext) }
 
-    private val localData : ArrayList<InvestItem> by lazy { arrayListOf() }
-
     fun launchObservers() {
         viewModelScope.launch(Dispatchers.IO) {
-            launch {
-                // Observing internet connection
-                networkObserver.observe().collectLatest {
-                    when(it) {
-                        NetworkObserver.Status.Unavailable -> { disconnect(); uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL, data = localData, state = OFFLINE)) }
-                        NetworkObserver.Status.Lost -> { disconnect(); uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL, data = localData, state = OFFLINE)) }
-                        else -> Unit
-                    }
+            launch { loadLocalData() }
+            launch { loadOnlineData() }
+            launch { observeSocketConnection() }
+            launch { observeNetworkConnection() }
+        }
+    }
+
+    private suspend fun observeSocketConnection() {
+        connectionObserver.invoke().collectLatest {
+            if (it.error != null) {
+                uiState.postValue(uiState.value!!.copy(state = OFFLINE))
+            }
+            else if (!it.connected) {
+                runDelayed {
+                    uiState.postValue(uiState.value!!.copy(state = OFFLINE))  // Socket does not respond after disconnection - artifical disconnection
                 }
             }
+        }
+    }
 
-            // Observing Socket connection
-            launch {
-                connectionObserver.invoke().collectLatest {
-                    if (it.error != null) uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL, data = localData, state = OFFLINE))
-                    else if (!it.connected) uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL, data = localData, state = OFFLINE))
-                }
-            }
+    private suspend fun loadLocalData() {
+        Log.i("LTS_TAG", "loadLocalData")
+        localDataObserver.invoke().collectLatest {
+            Log.i("LTS_TAG", "loadLocalData: $it")
+            uiState.postValue(uiState.value!!.copy(data = it)) }
+    }
 
-            loadOnlineData()
-
-            launch(Dispatchers.IO) {
-                localDataObserver.invoke().collectLatest {
-                    localData.clear()
-                    localData.addAll(it)
-                }
+    private suspend fun observeNetworkConnection() {
+        networkObserver.observe().collectLatest {
+            when(it) {
+                NetworkObserver.Status.Unavailable -> { disconnect(); runDelayed { uiState.postValue(uiState.value!!.copy(state = OFFLINE)) } }
+                NetworkObserver.Status.Lost -> { disconnect(); runDelayed { uiState.postValue(uiState.value!!.copy(state = OFFLINE)) } }
+                else -> Unit
             }
         }
     }
@@ -71,32 +80,27 @@ class ConnectionViewModel @Inject constructor(
     private fun saveDataToLocalDB(list: List<InvestItem>) = viewModelScope.launch(Dispatchers.IO) { saveDataUsecase.invoke(list) }
 
     fun connect() {
-        Log.i(TAG, "CONNECT")
         uiState.postValue(uiState.value!!.copy(state = CONNECTING))
         connect.invoke()
     }
 
     fun disconnect() {
-        Log.i(TAG, "DISCONNECT")
         uiState.postValue(uiState.value!!.copy(state = DISCONNECTING))
+        runDelayed { uiState.postValue(uiState.value!!.copy(state = OFFLINE))  }    // Socket does not respond after disconnection - artifical disconnection
         disconnect.invoke()
     }
 
     private fun loadOnlineData() {
         viewModelScope.launch(Dispatchers.IO) {
             dataObserver.invoke().collectLatest {
-                if (it.isEmpty()) {
-                    Log.i(TAG, "Load Online --- OFFLINE")
-                    if (uiState.value!!.dataType != DataState.LOCAL) uiState.postValue(uiState.value!!.copy(dataType = DataState.LOCAL ,data = localData, state = OFFLINE))
-                }
+                if (it.isEmpty() && uiState.value!!.state != OFFLINE) uiState.postValue(uiState.value!!.copy(state = OFFLINE))
                 else {
-                    Log.i(TAG, "Load Online --- ONLINE")
-                    uiState.postValue(uiState.value!!.copy(state = ONLINE, data = it, dataType = DataState.ONLINE))
+                    uiState.postValue(uiState.value!!.copy(state = ONLINE))
                     saveDataToLocalDB(it)
                 }
             }
         }
     }
 
-    private val TAG = "LTS_TAG"
+    private fun runDelayed(func: () -> Unit ) { Handler(Looper.getMainLooper()).postDelayed(1500) {func()} }
 }

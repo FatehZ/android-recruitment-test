@@ -6,8 +6,10 @@ import com.ktxdevelopment.websocket.R
 import com.ktxdevelopment.websocket.databinding.ActivityMainBinding
 import com.ktxdevelopment.websocket.ui.fragments.FragmentMain
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 
+@ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 

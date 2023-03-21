@@ -18,5 +18,6 @@ class RemoteRepository @Inject constructor(private var socketService: WebSocketS
     val connectionState: Flow<SocketConnectionState> = socketService.socketState.mapLatest { SocketConnectionState(connected = it.connected, error = it.error) }
 
     fun disconnect() = socketService.disconnect()
+
     fun connect() = socketService.connect()
 }
