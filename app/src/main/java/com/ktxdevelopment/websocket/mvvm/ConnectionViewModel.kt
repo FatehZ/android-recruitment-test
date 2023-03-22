@@ -18,6 +18,7 @@ import com.ktxdevelopment.websocket.remote.net.NetworkObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -92,9 +93,13 @@ class ConnectionViewModel @Inject constructor(
 
     private fun loadOnlineData() {
         viewModelScope.launch(Dispatchers.IO) {
-            dataObserver.invoke().collectLatest {
-                if (it.isEmpty() && uiState.value!!.state != OFFLINE) uiState.postValue(uiState.value!!.copy(state = OFFLINE))
+            dataObserver.invoke().collect {
+                if (it.isEmpty())  {
+                    if (uiState.value!!.state != OFFLINE) uiState.postValue(uiState.value!!.copy(state = OFFLINE))
+                }
                 else {
+                    Log.i("LTS_TAG", "Data : ${it.size}")
+                    Log.i("LTS_TAG", "Data : $it")
                     uiState.postValue(uiState.value!!.copy(state = ONLINE))
                     saveDataToLocalDB(it)
                 }

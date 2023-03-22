@@ -52,17 +52,12 @@ class WebSocketService {
         socket.on(Constants.Socket.CONNECT_ERROR) { data ->
             if (data != null && data.isNotEmpty()) {
                 val error = data[0]
-                if (error != null && error is Throwable) {
-                    Log.i(TAG, "collectConnectionError: ${data[0]}")
-                    _socketState.value = _socketState.value.copy(error = error)
-                }
+                if (error != null && error is Throwable) { _socketState.value = _socketState.value.copy(error = error) }
             }
         }.on(Constants.Socket.ERROR) { data ->
             if (data != null && data.isNotEmpty()) {
-                Log.i(TAG, "collectConnectionError: ${data[0]}")
                 val error = data[0]
-                if (error != null && error is Throwable) _socketState.value =
-                    _socketState.value.copy(error = error)
+                if (error != null && error is Throwable) _socketState.value = _socketState.value.copy(error = error)
             }
         }
     }
@@ -77,11 +72,7 @@ class WebSocketService {
         }
     }
 
-    fun connect() {
-        socket.connect()
-    }
+    fun connect() { socket.connect() }
 
-    fun disconnect() {
-        socket.disconnect()
-    }
+    fun disconnect() { socket.disconnect() }
 }
