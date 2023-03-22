@@ -71,8 +71,8 @@ class ConnectionViewModel @Inject constructor(
     private suspend fun observeNetworkConnection() {
         networkObserver.observe().collectLatest {
             when(it) {
-                NetworkObserver.Status.Unavailable -> { disconnect(); runDelayed { uiState.postValue(uiState.value!!.copy(state = OFFLINE)) } }
-                NetworkObserver.Status.Lost -> { disconnect(); runDelayed { uiState.postValue(uiState.value!!.copy(state = OFFLINE)) } }
+                NetworkObserver.Status.Unavailable -> { disconnect();  uiState.postValue(uiState.value!!.copy(state = OFFLINE)) }
+                NetworkObserver.Status.Lost -> { disconnect(); uiState.postValue(uiState.value!!.copy(state = OFFLINE)) }
                 else -> Unit
             }
         }
@@ -87,7 +87,7 @@ class ConnectionViewModel @Inject constructor(
 
     fun disconnect() {
         uiState.postValue(uiState.value!!.copy(state = DISCONNECTING))
-        runDelayed { uiState.postValue(uiState.value!!.copy(state = OFFLINE))  }    // Socket does not respond after disconnection - artifical disconnection
+        runDelayed { uiState.postValue(uiState.value!!.copy(state = OFFLINE)) }    // Socket does not respond after disconnection - artifical disconnection
         disconnect.invoke()
     }
 
@@ -100,12 +100,12 @@ class ConnectionViewModel @Inject constructor(
                 else {
                     Log.i("LTS_TAG", "Data : ${it.size}")
                     Log.i("LTS_TAG", "Data : $it")
-                    uiState.postValue(uiState.value!!.copy(state = ONLINE))
+                    if (uiState.value!!.state != DISCONNECTING) uiState.postValue(uiState.value!!.copy(state = ONLINE))
                     saveDataToLocalDB(it)
                 }
             }
         }
     }
 
-    private fun runDelayed(func: () -> Unit ) { Handler(Looper.getMainLooper()).postDelayed(1500) {func()} }
+    private fun runDelayed(func: () -> Unit ) { Handler(Looper.getMainLooper()).postDelayed(1000) {func()} }
 }

@@ -1,10 +1,13 @@
 package com.ktxdevelopment.websocket.ui.fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.postDelayed
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -64,7 +67,7 @@ class FragmentMain : Fragment() {
             when (it.state) {
                 UIConnectionState.ONLINE -> { enableUI(it)  }
                 UIConnectionState.CONNECTING -> { disableUI() }
-                UIConnectionState.OFFLINE -> { enableUI(it) }
+                UIConnectionState.OFFLINE -> { runDelayed { enableUI(it) } }
                 UIConnectionState.DISCONNECTING -> { disableUI() }
             }
         }
@@ -86,6 +89,8 @@ class FragmentMain : Fragment() {
         else if (state.data.isEmpty()) setStateNoData()
         else setStateDisconnected()
     }
+
+    private fun runDelayed(func: () -> Unit ) { Handler(Looper.getMainLooper()).postDelayed(1000) {func()} }
 
     private fun setStateDisconnected() {
         binding.ivConnectionState.setImageResource(R.drawable.disconnected)

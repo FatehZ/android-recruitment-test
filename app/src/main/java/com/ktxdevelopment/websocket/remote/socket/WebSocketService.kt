@@ -52,12 +52,12 @@ class WebSocketService {
         socket.on(Constants.Socket.CONNECT_ERROR) { data ->
             if (data != null && data.isNotEmpty()) {
                 val error = data[0]
-                if (error != null && error is Throwable) { _socketState.value = _socketState.value.copy(error = error) }
+                if (error != null && error is Throwable) { _socketState.value = _socketState.value.copy(error = error, data = ResponseModel()) }
             }
         }.on(Constants.Socket.ERROR) { data ->
             if (data != null && data.isNotEmpty()) {
                 val error = data[0]
-                if (error != null && error is Throwable) _socketState.value = _socketState.value.copy(error = error)
+                if (error != null && error is Throwable) _socketState.value = _socketState.value.copy(error = error, data = ResponseModel())
             }
         }
     }
